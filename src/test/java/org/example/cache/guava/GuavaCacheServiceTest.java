@@ -1,14 +1,15 @@
-package org.example.Cache.guava;
+package org.example.cache.guava;
 
-import org.example.Cache.CacheService;
-import org.example.Cache.stats.DefaultStatsLogger;
-import org.example.Cache.stats.StatsExecutorService;
-import org.example.Cache.stats.StatsLogger;
-import static org.example.Cache.Constants.*;
+import org.example.cache.CacheService;
+import org.example.cache.stats.DefaultStatsLogger;
+import org.example.cache.stats.StatsExecutorService;
+import org.example.cache.stats.StatsLogger;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.example.cache.TestConstants.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

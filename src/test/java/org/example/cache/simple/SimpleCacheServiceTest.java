@@ -1,19 +1,16 @@
-package org.example.Cache.simple;
+package org.example.cache.simple;
 
-import org.example.Cache.CacheService;
-import org.example.Cache.stats.DefaultStatsLogger;
-import org.example.Cache.stats.StatsExecutorService;
-import org.example.Cache.stats.StatsLogger;
+import org.example.cache.CacheService;
+import org.example.cache.stats.DefaultStatsLogger;
+import org.example.cache.stats.StatsExecutorService;
+import org.example.cache.stats.StatsLogger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import static org.example.cache.TestConstants.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.example.Cache.Constants.*;
 
 public class SimpleCacheServiceTest {
     private CacheService<Integer, String> cacheService;
@@ -73,9 +70,6 @@ public class SimpleCacheServiceTest {
 
     @Test
     public void after_MaxTime_LeastFrequentlyUsedEntries_AreEvicted() throws Exception {
-//        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
-//        Runnable task = () ->;;
-//        scheduledExecutorService.schedule(task, MAX_LAST_TIME_ACCESS, TimeUnit.SECONDS);
         // arrange
         cacheService.put(1, "A");
         cacheService.put(2, "B");
