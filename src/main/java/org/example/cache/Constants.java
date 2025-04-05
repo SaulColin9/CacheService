@@ -1,4 +1,4 @@
-package org.example.Cache.Constants;
+package org.example.cache;
 
 public final class Constants {
     public static final int MAX_SIZE = 3;

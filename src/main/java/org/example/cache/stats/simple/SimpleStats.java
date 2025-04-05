@@ -1,7 +1,7 @@
-package org.example.Cache.stats.simple;
+package org.example.cache.stats.simple;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import org.example.Cache.stats.Stats;
+import org.example.cache.stats.Stats;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

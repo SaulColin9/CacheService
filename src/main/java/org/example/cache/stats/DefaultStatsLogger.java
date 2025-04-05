@@ -1,4 +1,4 @@
-package org.example.Cache.stats;
+package org.example.cache.stats;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,7 +1,7 @@
-package org.example.Cache.stats.guava;
+package org.example.cache.stats.guava;
 
 import com.google.common.cache.Cache;
-import org.example.Cache.stats.Stats;
+import org.example.cache.stats.Stats;
 
 public class GuavaStats<K,V> implements Stats {
     private final Cache<K,V> cache;

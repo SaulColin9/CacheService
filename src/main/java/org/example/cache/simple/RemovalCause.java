@@ -1,4 +1,4 @@
-package org.example.Cache.simple;
+package org.example.cache.simple;
 
 public enum RemovalCause {
     EVICTED,

@@ -1,12 +1,12 @@
-package org.example.Cache.guava;
+package org.example.cache.guava;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
-import org.example.Cache.CacheService;
-import org.example.Cache.Constants.Constants;
-import org.example.Cache.stats.StatsExecutorService;
-import org.example.Cache.stats.guava.GuavaStats;
+import org.example.cache.CacheService;
+import org.example.cache.Constants;
+import org.example.cache.stats.StatsExecutorService;
+import org.example.cache.stats.guava.GuavaStats;
 
 import java.util.concurrent.TimeUnit;
 

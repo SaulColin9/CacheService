@@ -1,4 +1,4 @@
-package org.example.Cache.stats;
+package org.example.cache.stats;
 
 public interface Stats {
     long evictionCount();

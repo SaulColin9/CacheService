@@ -1,4 +1,4 @@
-package org.example.Cache.simple;
+package org.example.cache.simple;
 
 @FunctionalInterface
 public interface RemovalListener<K, V> {

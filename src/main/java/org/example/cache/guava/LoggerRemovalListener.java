@@ -1,4 +1,4 @@
-package org.example.Cache.guava;
+package org.example.cache.guava;
 
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;

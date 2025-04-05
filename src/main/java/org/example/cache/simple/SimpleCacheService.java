@@ -1,10 +1,10 @@
-package org.example.Cache.simple;
+package org.example.cache.simple;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import org.example.Cache.CacheService;
-import org.example.Cache.Constants.*;
-import org.example.Cache.stats.simple.SimpleStats;
-import org.example.Cache.stats.StatsExecutorService;
+import org.example.cache.CacheService;
+import org.example.cache.Constants;
+import org.example.cache.stats.simple.SimpleStats;
+import org.example.cache.stats.StatsExecutorService;
 
 import java.util.Map;
 import java.util.concurrent.*;
