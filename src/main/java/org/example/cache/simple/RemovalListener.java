@@ -1,6 +1,4 @@
-package org.example.Cache;
-
-import org.example.Cache.Constants.RemovalCause;
+package org.example.cache.simple;
 
 @FunctionalInterface
 public interface RemovalListener<K, V> {
