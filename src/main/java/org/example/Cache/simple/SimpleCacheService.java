@@ -3,50 +3,79 @@ package org.example.Cache.simple;
 import com.google.common.util.concurrent.AtomicDouble;
 import org.example.Cache.CacheService;
 import org.example.Cache.Constants.*;
-import org.example.Cache.stats.DefaultStatsLogger;
 import org.example.Cache.stats.simple.SimpleStats;
 import org.example.Cache.stats.StatsExecutorService;
-import org.example.Cache.stats.StatsLogger;
 
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Eviction logic - LFU
- * when the cache is full (that is either we reached 100k entries or KB)
- * search for the entries with the lowest frequency and remove them from cache
- * the eviction will also be called out every 5 seconds
- */
 public class SimpleCacheService<K, V> implements CacheService<K, V> {
     private final Map<K, V> cache = new ConcurrentHashMap<>();
     private final Map<K, Integer> frequency = new ConcurrentHashMap<>();
     private final Map<Integer, ConcurrentLinkedDeque<K>> minFrequency = new ConcurrentHashMap<>();
     private int minFrequencyAvailable = 0;
 
+    private final int maxSize;
+    private final int maxLastTimeAccess;
+
     private final AtomicInteger evictionCount = new AtomicInteger(0);
     private final AtomicLong totalPutTime = new AtomicLong(0);
     private final AtomicLong putOperationCount = new AtomicLong(0);
-    private final AtomicDouble atomicDouble = new AtomicDouble(0);
+    private final AtomicDouble averageNewPutTime = new AtomicDouble(0);
 
     private final ScheduledExecutorService evictionExecutorService;
     private final StatsExecutorService statsExecutorService;
     private final Object lock = new Object();
 
-    private final RemovalListener<K, V> removalListener = new SimpleLoggerRemovalListener<>();
+    private final RemovalListener<K, V> removalListener;
 
-    public static <K, V> SimpleCacheService<K, V> create() {
-        return new SimpleCacheService<>(Executors.newSingleThreadScheduledExecutor());
+    public static class Builder<K,V> {
+        private final StatsExecutorService statsExecutorService;
+
+        private RemovalListener<K, V> removalListener = (key, value, cause) -> {};
+        private ScheduledExecutorService evictionExecutorService = Executors.newSingleThreadScheduledExecutor();
+        private int maxSize = Constants.MAX_SIZE;
+        private int maxLastTimeAccess = Constants.MAX_LAST_TIME_ACCESS;
+
+        public Builder(StatsExecutorService statsExecutorService){
+            this.statsExecutorService = statsExecutorService;
+        }
+
+        public Builder<K,V> removalListener(RemovalListener<K,V> removalListener){
+            this.removalListener = removalListener;
+            return this;
+        }
+
+        public Builder<K, V> evictionExecutorService(ScheduledExecutorService evictionExecutorService){
+            this.evictionExecutorService = evictionExecutorService;
+            return this;
+        }
+
+        public Builder<K, V> maxLastTimeAccess(int maxLastTimeAccess){
+            this.maxLastTimeAccess = maxLastTimeAccess;
+            return this;
+        }
+
+        public Builder<K, V> maxSize(int maxSize){
+            this.maxSize = maxSize;
+            return this;
+        }
+
+        public SimpleCacheService<K, V> build(){
+            return new SimpleCacheService<>(this);
+        }
     }
 
-    private SimpleCacheService(ScheduledExecutorService evictionExecutorService) {
-        this.evictionExecutorService = evictionExecutorService;
+    private SimpleCacheService(Builder<K,V> builder){
+        maxSize = builder.maxSize;
+        maxLastTimeAccess = builder.maxLastTimeAccess;
+        statsExecutorService = builder.statsExecutorService;
+        removalListener = builder.removalListener;
+        evictionExecutorService = builder.evictionExecutorService;
 
-        final StatsLogger statsLogger = new DefaultStatsLogger(new SimpleStats(evictionCount, atomicDouble));
-        this.statsExecutorService = StatsExecutorService.create(statsLogger);
-
-        this.statsExecutorService.startStatsTask();
+        statsExecutorService.startStatsTask(new SimpleStats(evictionCount, averageNewPutTime));
         startCleanupTask();
     }
 
@@ -85,7 +114,7 @@ public class SimpleCacheService<K, V> implements CacheService<K, V> {
 
     private boolean isCacheAvailable() {
         synchronized (lock) {
-            return cache.size() < Constants.MAX_SIZE;
+            return cache.size() < maxSize;
         }
     }
 
@@ -103,7 +132,6 @@ public class SimpleCacheService<K, V> implements CacheService<K, V> {
             if (evictedKey != null) removalListener.onRemoval(evictedKey, evictedValue, RemovalCause.EVICTED);
         }
     }
-
 
     private void updateFrequency(K key) {
         synchronized (lock) {
@@ -126,15 +154,14 @@ public class SimpleCacheService<K, V> implements CacheService<K, V> {
         synchronized (lock){
             totalPutTime.addAndGet(elapsedTime);
             putOperationCount.incrementAndGet();
-            atomicDouble.set((double) totalPutTime.get() / putOperationCount.get());
+            averageNewPutTime.set((double) totalPutTime.get() / putOperationCount.get());
         }
     }
 
     private void startCleanupTask() {
         evictionExecutorService
-                .scheduleAtFixedRate(this::cacheEviction, Constants.MAX_LAST_TIME_ACCESS, Constants.MAX_LAST_TIME_ACCESS, TimeUnit.SECONDS);
+                .scheduleAtFixedRate(this::cacheEviction, maxLastTimeAccess, maxLastTimeAccess, TimeUnit.SECONDS);
     }
-
 
     @Override
     public void close() {
@@ -142,9 +169,5 @@ public class SimpleCacheService<K, V> implements CacheService<K, V> {
         statsExecutorService.shutDown();
     }
 
-    @Override
-    public String toString() {
-        return "SimpleCacheService{" + "frequency=" + frequency + ", cache=" + cache + '}';
-    }
 }
 
