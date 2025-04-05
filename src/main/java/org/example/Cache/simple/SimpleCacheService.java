@@ -15,7 +15,6 @@ public class SimpleCacheService<K, V> implements CacheService<K, V> {
     private final Map<K, V> cache = new ConcurrentHashMap<>();
     private final Map<K, Integer> frequency = new ConcurrentHashMap<>();
     private final Map<Integer, ConcurrentLinkedDeque<K>> minFrequency = new ConcurrentHashMap<>();
-    private int minFrequencyAvailable = 0;
 
     private final int maxSize;
     private final int maxLastTimeAccess;
@@ -24,6 +23,7 @@ public class SimpleCacheService<K, V> implements CacheService<K, V> {
     private final AtomicLong totalPutTime = new AtomicLong(0);
     private final AtomicLong putOperationCount = new AtomicLong(0);
     private final AtomicDouble averageNewPutTime = new AtomicDouble(0);
+    private final AtomicInteger minFrequencyAvailable = new AtomicInteger(0);
 
     private final ScheduledExecutorService evictionExecutorService;
     private final StatsExecutorService statsExecutorService;
@@ -107,7 +107,7 @@ public class SimpleCacheService<K, V> implements CacheService<K, V> {
             frequency.put(key, 1);
             minFrequency.computeIfAbsent(1, k -> new ConcurrentLinkedDeque<>()).add(key);
 
-            minFrequencyAvailable = 1;
+            minFrequencyAvailable.set(1);
             trackPutTime(System.nanoTime() - startTime);
         }
     }
@@ -120,10 +120,10 @@ public class SimpleCacheService<K, V> implements CacheService<K, V> {
 
     private void cacheEviction() {
         synchronized (lock) {
-            K evictedKey = minFrequency.get(minFrequencyAvailable).iterator().next();
-            minFrequency.get(minFrequencyAvailable).remove(evictedKey);
+            K evictedKey = minFrequency.get(minFrequencyAvailable.get()).iterator().next();
+            minFrequency.get(minFrequencyAvailable.get()).remove(evictedKey);
 
-            if (minFrequency.get(minFrequencyAvailable).isEmpty()) minFrequency.remove(minFrequencyAvailable);
+            if (minFrequency.get(minFrequencyAvailable.get()).isEmpty()) minFrequency.remove(minFrequencyAvailable.get());
 
             V evictedValue = cache.remove(evictedKey);
             frequency.remove(evictedKey);
@@ -143,7 +143,7 @@ public class SimpleCacheService<K, V> implements CacheService<K, V> {
 
             if (minFrequency.get(entryFrequency).isEmpty()) {
                 minFrequency.remove(entryFrequency);
-                if (minFrequencyAvailable == entryFrequency) minFrequencyAvailable++;
+                if (minFrequencyAvailable.get() == entryFrequency) minFrequencyAvailable.incrementAndGet();
             }
 
             minFrequency.computeIfAbsent(entryFrequency + 1, k -> new ConcurrentLinkedDeque<>()).add(key);
@@ -168,6 +168,5 @@ public class SimpleCacheService<K, V> implements CacheService<K, V> {
         evictionExecutorService.shutdown();
         statsExecutorService.shutDown();
     }
-
 }
 

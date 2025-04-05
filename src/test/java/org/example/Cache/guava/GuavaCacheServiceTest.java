@@ -4,7 +4,9 @@ import org.example.Cache.CacheService;
 import org.example.Cache.stats.DefaultStatsLogger;
 import org.example.Cache.stats.StatsExecutorService;
 import org.example.Cache.stats.StatsLogger;
-import static org.example.Cache.Constants.Constants.*;
+import static org.example.Cache.Constants.*;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,6 +15,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class GuavaCacheServiceTest {
     private CacheService<Integer, String> cacheService;
 
+    @AfterEach
+    public void afterEach() throws Exception {
+        cacheService.close();
+    }
     @BeforeEach
     public void setUp(){
         final StatsLogger statsLogger = new DefaultStatsLogger();
@@ -76,13 +82,13 @@ public class GuavaCacheServiceTest {
         // the least recently used entry is 1 at this point
 
         try {
-            Thread.sleep(MAX_LAST_TIME_ACCESS * 1000);
+            Thread.sleep((MAX_LAST_TIME_ACCESS + 1
+            )* 1000);
+            // assert
+            assertThat(cacheService.get(1)).isNull();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-
-        // assert
-        assertThat(cacheService.get(1)).isNull();
     }
 
 }

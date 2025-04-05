@@ -4,14 +4,24 @@ import org.example.Cache.CacheService;
 import org.example.Cache.stats.DefaultStatsLogger;
 import org.example.Cache.stats.StatsExecutorService;
 import org.example.Cache.stats.StatsLogger;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.example.Cache.Constants.Constants.*;
+import static org.example.Cache.Constants.*;
 
 public class SimpleCacheServiceTest {
     private CacheService<Integer, String> cacheService;
+
+    @AfterEach
+    public void afterEach() throws Exception {
+        cacheService.close();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -62,7 +72,10 @@ public class SimpleCacheServiceTest {
     }
 
     @Test
-    public void after_MaxTime_LeastFrequentlyUsedEntries_AreEvicted(){
+    public void after_MaxTime_LeastFrequentlyUsedEntries_AreEvicted() throws Exception {
+//        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
+//        Runnable task = () ->;;
+//        scheduledExecutorService.schedule(task, MAX_LAST_TIME_ACCESS, TimeUnit.SECONDS);
         // arrange
         cacheService.put(1, "A");
         cacheService.put(2, "B");
@@ -72,14 +85,15 @@ public class SimpleCacheServiceTest {
         cacheService.get(1);
         cacheService.get(1);
         cacheService.get(2);
+
         try {
-            Thread.sleep(MAX_LAST_TIME_ACCESS * 1000);
+            Thread.sleep((MAX_LAST_TIME_ACCESS + 1)* 1000);
+            // assert
+            assertThat(cacheService.get(3)).isNull();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        // assert
-        assertThat(cacheService.get(3)).isNull();
     }
 
 
